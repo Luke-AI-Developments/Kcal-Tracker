@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f1115" />
+  <title>Kcal Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Kcal Tracker" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Kcal Tracker</h1>
+      <p class="date" id="today-date"></p>
+    </header>
+
+    <section class="totals" id="totals">
+      <div class="total-card">
+        <span class="total-value" id="total-calories">0</span>
+        <span class="total-label">kcal</span>
+      </div>
+      <div class="macro-row">
+        <div class="macro">
+          <span class="macro-value" id="total-protein">0g</span>
+          <span class="macro-label">protein</span>
+        </div>
+        <div class="macro">
+          <span class="macro-value" id="total-carbs">0g</span>
+          <span class="macro-label">carbs</span>
+        </div>
+        <div class="macro">
+          <span class="macro-value" id="total-fat">0g</span>
+          <span class="macro-label">fat</span>
+        </div>
+      </div>
+    </section>
+
+    <form id="entry-form" class="entry-form">
+      <input
+        type="text"
+        id="food-input"
+        placeholder="What did you eat? e.g. 2 slices of pizza"
+        autocomplete="off"
+        required
+      />
+      <button type="submit" id="add-button">Add</button>
+    </form>
+
+    <p class="status" id="status"></p>
+
+    <ul class="log" id="log-list"></ul>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
