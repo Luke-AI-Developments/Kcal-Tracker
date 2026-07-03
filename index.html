@@ -20,41 +20,52 @@
       <p class="date" id="today-date"></p>
     </header>
 
-    <section class="totals" id="totals">
-      <div class="total-card">
-        <span class="total-value" id="total-calories">0</span>
-        <span class="total-label">kcal</span>
-      </div>
-      <div class="macro-row">
-        <div class="macro">
-          <span class="macro-value" id="total-protein">0g</span>
-          <span class="macro-label">protein</span>
+    <nav class="tabs">
+      <button type="button" class="tab-button active" id="tab-today">Today</button>
+      <button type="button" class="tab-button" id="tab-history">History</button>
+    </nav>
+
+    <section id="view-today">
+      <section class="totals" id="totals">
+        <div class="total-card">
+          <span class="total-value" id="total-calories">0</span>
+          <span class="total-label">kcal</span>
         </div>
-        <div class="macro">
-          <span class="macro-value" id="total-carbs">0g</span>
-          <span class="macro-label">carbs</span>
+        <div class="macro-row">
+          <div class="macro">
+            <span class="macro-value" id="total-protein">0g</span>
+            <span class="macro-label">protein</span>
+          </div>
+          <div class="macro">
+            <span class="macro-value" id="total-carbs">0g</span>
+            <span class="macro-label">carbs</span>
+          </div>
+          <div class="macro">
+            <span class="macro-value" id="total-fat">0g</span>
+            <span class="macro-label">fat</span>
+          </div>
         </div>
-        <div class="macro">
-          <span class="macro-value" id="total-fat">0g</span>
-          <span class="macro-label">fat</span>
-        </div>
-      </div>
+      </section>
+
+      <form id="entry-form" class="entry-form">
+        <input
+          type="text"
+          id="food-input"
+          placeholder="What did you eat? e.g. 2 slices of pizza"
+          autocomplete="off"
+          required
+        />
+        <button type="submit" id="add-button">Add</button>
+      </form>
+
+      <p class="status" id="status"></p>
+
+      <ul class="log" id="log-list"></ul>
     </section>
 
-    <form id="entry-form" class="entry-form">
-      <input
-        type="text"
-        id="food-input"
-        placeholder="What did you eat? e.g. 2 slices of pizza"
-        autocomplete="off"
-        required
-      />
-      <button type="submit" id="add-button">Add</button>
-    </form>
-
-    <p class="status" id="status"></p>
-
-    <ul class="log" id="log-list"></ul>
+    <section id="view-history" hidden>
+      <ul class="history-list" id="history-list"></ul>
+    </section>
   </div>
 
   <script src="app.js"></script>

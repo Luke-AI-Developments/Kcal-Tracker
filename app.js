@@ -10,22 +10,37 @@ const totalProteinEl = document.getElementById("total-protein");
 const totalCarbsEl = document.getElementById("total-carbs");
 const totalFatEl = document.getElementById("total-fat");
 
-function todayKey() {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  return `kcal-log-${y}-${m}-${d}`;
+const tabTodayBtn = document.getElementById("tab-today");
+const tabHistoryBtn = document.getElementById("tab-history");
+const viewToday = document.getElementById("view-today");
+const viewHistory = document.getElementById("view-history");
+const historyList = document.getElementById("history-list");
+
+const LOG_KEY_PREFIX = "kcal-log-";
+
+function dateKey(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${LOG_KEY_PREFIX}${y}-${m}-${d}`;
 }
 
-function loadEntries() {
-  const raw = localStorage.getItem(todayKey());
+function todayKey() {
+  return dateKey(new Date());
+}
+
+function loadEntriesForKey(key) {
+  const raw = localStorage.getItem(key);
   if (!raw) return [];
   try {
     return JSON.parse(raw);
   } catch {
     return [];
   }
+}
+
+function loadEntries() {
+  return loadEntriesForKey(todayKey());
 }
 
 function saveEntries(entries) {
@@ -51,8 +66,8 @@ function renderDate() {
   });
 }
 
-function renderTotals() {
-  const totals = entries.reduce(
+function computeTotals(list) {
+  return list.reduce(
     (acc, e) => {
       acc.calories += e.calories;
       acc.protein += e.protein_g;
@@ -62,6 +77,10 @@ function renderTotals() {
     },
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
   );
+}
+
+function renderTotals() {
+  const totals = computeTotals(entries);
 
   totalCaloriesEl.textContent = Math.round(totals.calories);
   totalProteinEl.textContent = `${round(totals.protein)}g`;
@@ -181,6 +200,116 @@ form.addEventListener("submit", async (e) => {
     input.focus();
   }
 });
+
+function formatDayLabel(key) {
+  const [, y, m, d] = key.match(/^kcal-log-(\d{4})-(\d{2})-(\d{2})$/);
+  const date = new Date(Number(y), Number(m) - 1, Number(d));
+  return date.toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+function getHistoryKeys() {
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith(LOG_KEY_PREFIX) && key !== todayKey()) {
+      keys.push(key);
+    }
+  }
+  return keys.sort().reverse();
+}
+
+function renderHistory() {
+  historyList.innerHTML = "";
+  const keys = getHistoryKeys();
+
+  if (keys.length === 0) {
+    const empty = document.createElement("li");
+    empty.className = "empty-state";
+    empty.textContent = "No past days yet.";
+    historyList.appendChild(empty);
+    return;
+  }
+
+  keys.forEach((key) => {
+    const dayEntries = loadEntriesForKey(key);
+    if (dayEntries.length === 0) return;
+
+    const totals = computeTotals(dayEntries);
+
+    const li = document.createElement("li");
+    li.className = "history-day";
+
+    const header = document.createElement("button");
+    header.className = "history-day-header";
+    header.type = "button";
+
+    const dateSpan = document.createElement("span");
+    dateSpan.className = "history-day-date";
+    dateSpan.textContent = formatDayLabel(key);
+
+    const summary = document.createElement("span");
+    summary.className = "history-day-summary";
+    summary.innerHTML = `<span class="history-day-cals">${Math.round(
+      totals.calories
+    )} kcal</span><span class="history-day-macros">P ${round(
+      totals.protein
+    )}g · C ${round(totals.carbs)}g · F ${round(totals.fat)}g</span>`;
+
+    header.appendChild(dateSpan);
+    header.appendChild(summary);
+
+    const entriesList = document.createElement("ul");
+    entriesList.className = "history-entries";
+    entriesList.hidden = true;
+
+    [...dayEntries].reverse().forEach((entry) => {
+      const entryLi = document.createElement("li");
+      entryLi.className = "history-entry";
+
+      const desc = document.createElement("span");
+      desc.className = "history-entry-desc";
+      desc.textContent = entry.description;
+
+      const cals = document.createElement("span");
+      cals.className = "history-entry-cals";
+      cals.textContent = Math.round(entry.calories);
+
+      entryLi.appendChild(desc);
+      entryLi.appendChild(cals);
+      entriesList.appendChild(entryLi);
+    });
+
+    header.addEventListener("click", () => {
+      entriesList.hidden = !entriesList.hidden;
+    });
+
+    li.appendChild(header);
+    li.appendChild(entriesList);
+    historyList.appendChild(li);
+  });
+}
+
+function showTodayView() {
+  viewToday.hidden = false;
+  viewHistory.hidden = true;
+  tabTodayBtn.classList.add("active");
+  tabHistoryBtn.classList.remove("active");
+}
+
+function showHistoryView() {
+  viewToday.hidden = true;
+  viewHistory.hidden = false;
+  tabTodayBtn.classList.remove("active");
+  tabHistoryBtn.classList.add("active");
+  renderHistory();
+}
+
+tabTodayBtn.addEventListener("click", showTodayView);
+tabHistoryBtn.addEventListener("click", showHistoryView);
 
 renderDate();
 render();
