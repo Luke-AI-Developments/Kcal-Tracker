@@ -31,6 +31,29 @@
           <span class="total-value" id="total-calories">0</span>
           <span class="total-label">kcal</span>
         </div>
+
+        <div class="goal-section" id="goal-display">
+          <div class="goal-bar-track">
+            <div class="goal-bar-fill" id="goal-bar-fill"></div>
+          </div>
+          <div class="goal-row">
+            <span class="goal-status" id="goal-status">No daily goal set</span>
+            <button type="button" class="goal-edit-btn" id="goal-edit-btn">Set goal</button>
+          </div>
+        </div>
+
+        <form class="goal-form" id="goal-form" hidden>
+          <input
+            type="number"
+            id="goal-input"
+            min="1"
+            step="1"
+            placeholder="Daily calorie goal, e.g. 2000"
+          />
+          <button type="submit" id="goal-save-btn">Save</button>
+          <button type="button" id="goal-cancel-btn">Cancel</button>
+        </form>
+
         <div class="macro-row">
           <div class="macro">
             <span class="macro-value" id="total-protein">0g</span>

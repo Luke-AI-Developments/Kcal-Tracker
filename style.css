@@ -186,6 +186,98 @@ header h1 {
   color: var(--text-dim);
 }
 
+.goal-section {
+  margin-bottom: 16px;
+}
+
+.goal-bar-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-alt);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.goal-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+.goal-bar-fill.over {
+  background: var(--danger);
+}
+
+.goal-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.goal-status {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.goal-edit-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.goal-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.goal-form[hidden] {
+  display: none;
+}
+
+.goal-form input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.goal-form input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.goal-form button {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#goal-save-btn {
+  background: var(--accent);
+  color: #0f1115;
+}
+
+#goal-cancel-btn {
+  background: var(--surface-alt);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+
 .macro-row {
   display: flex;
   justify-content: space-around;

@@ -16,7 +16,16 @@ const viewToday = document.getElementById("view-today");
 const viewHistory = document.getElementById("view-history");
 const historyList = document.getElementById("history-list");
 
+const goalDisplay = document.getElementById("goal-display");
+const goalBarFill = document.getElementById("goal-bar-fill");
+const goalStatusEl = document.getElementById("goal-status");
+const goalEditBtn = document.getElementById("goal-edit-btn");
+const goalForm = document.getElementById("goal-form");
+const goalInput = document.getElementById("goal-input");
+const goalCancelBtn = document.getElementById("goal-cancel-btn");
+
 const LOG_KEY_PREFIX = "kcal-log-";
+const GOAL_KEY = "kcal-goal";
 
 function dateKey(date) {
   const y = date.getFullYear();
@@ -88,6 +97,41 @@ function renderTotals() {
   totalFatEl.textContent = `${round(totals.fat)}g`;
 }
 
+function loadGoal() {
+  const raw = localStorage.getItem(GOAL_KEY);
+  const value = Number(raw);
+  return value > 0 ? value : null;
+}
+
+function saveGoal(value) {
+  localStorage.setItem(GOAL_KEY, String(value));
+}
+
+function renderGoal() {
+  const goal = loadGoal();
+  const totals = computeTotals(entries);
+  const calories = Math.round(totals.calories);
+
+  if (!goal) {
+    goalBarFill.style.width = "0%";
+    goalBarFill.classList.remove("over");
+    goalStatusEl.textContent = "No daily goal set";
+    goalEditBtn.textContent = "Set goal";
+    return;
+  }
+
+  const pct = Math.min(100, (calories / goal) * 100);
+  goalBarFill.style.width = `${pct}%`;
+  goalBarFill.classList.toggle("over", calories > goal);
+
+  if (calories > goal) {
+    goalStatusEl.textContent = `${calories} / ${goal} kcal · ${calories - goal} over`;
+  } else {
+    goalStatusEl.textContent = `${calories} / ${goal} kcal · ${goal - calories} left`;
+  }
+  goalEditBtn.textContent = "Edit goal";
+}
+
 function renderLog() {
   logList.innerHTML = "";
 
@@ -139,6 +183,7 @@ function renderLog() {
 
 function render() {
   renderTotals();
+  renderGoal();
   renderLog();
 }
 
@@ -310,6 +355,29 @@ function showHistoryView() {
 
 tabTodayBtn.addEventListener("click", showTodayView);
 tabHistoryBtn.addEventListener("click", showHistoryView);
+
+goalEditBtn.addEventListener("click", () => {
+  goalInput.value = loadGoal() || "";
+  goalDisplay.hidden = true;
+  goalForm.hidden = false;
+  goalInput.focus();
+});
+
+goalCancelBtn.addEventListener("click", () => {
+  goalForm.hidden = true;
+  goalDisplay.hidden = false;
+});
+
+goalForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const value = Number(goalInput.value);
+  if (value > 0) {
+    saveGoal(value);
+  }
+  goalForm.hidden = true;
+  goalDisplay.hidden = false;
+  renderGoal();
+});
 
 renderDate();
 render();
