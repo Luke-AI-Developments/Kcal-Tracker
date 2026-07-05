@@ -122,6 +122,18 @@
         <button type="submit" id="add-button">Add</button>
       </form>
 
+      <div class="clarify-panel" id="clarify-panel" hidden>
+        <p class="modal-hint" id="clarify-question"></p>
+        <form id="clarify-form" class="entry-form">
+          <input type="text" id="clarify-input" placeholder="Add detail..." autocomplete="off" />
+          <button type="submit" id="clarify-submit-btn">Submit</button>
+        </form>
+        <div class="goal-form-actions">
+          <button type="button" id="clarify-skip-btn">Estimate anyway</button>
+          <button type="button" id="clarify-cancel-btn">Cancel</button>
+        </div>
+      </div>
+
       <div class="alt-entry-methods">
         <button type="button" class="alt-method-btn" id="scan-barcode-btn">📷 Scan barcode</button>
         <button type="button" class="alt-method-btn" id="add-photo-btn">🖼️ Add from photo</button>

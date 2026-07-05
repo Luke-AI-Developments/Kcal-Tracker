@@ -324,9 +324,11 @@ function addEntryFromResult(description, result) {
   render();
 }
 
-async function lookupFood(description) {
-  const url = `/api/lookup?food=${encodeURIComponent(description)}`;
-  const res = await fetch(url);
+async function lookupFood(description, { final = false } = {}) {
+  const params = new URLSearchParams({ food: description });
+  if (final) params.set("final", "true");
+
+  const res = await fetch(`/api/lookup?${params.toString()}`);
 
   if (!res.ok) {
     let message = "Lookup failed. Try again.";
@@ -342,6 +344,44 @@ async function lookupFood(description) {
   return res.json();
 }
 
+const clarifyPanel = document.getElementById("clarify-panel");
+const clarifyQuestionEl = document.getElementById("clarify-question");
+const clarifyForm = document.getElementById("clarify-form");
+const clarifyInput = document.getElementById("clarify-input");
+const clarifySkipBtn = document.getElementById("clarify-skip-btn");
+const clarifyCancelBtn = document.getElementById("clarify-cancel-btn");
+
+let pendingClarification = null;
+
+function showClarifyPanel(question) {
+  pendingClarification = { description: input.value.trim() };
+  clarifyQuestionEl.textContent = question;
+  clarifyInput.value = "";
+  clarifyPanel.hidden = false;
+  input.disabled = true;
+  addButton.disabled = true;
+  clarifyInput.focus();
+}
+
+function hideClarifyPanel() {
+  pendingClarification = null;
+  clarifyPanel.hidden = true;
+  input.disabled = false;
+  addButton.disabled = false;
+}
+
+async function finalizeEntry(description) {
+  setStatus("Looking up nutrition...");
+  try {
+    const result = await lookupFood(description, { final: true });
+    addEntryFromResult(description, result);
+    input.value = "";
+    setStatus("");
+  } catch (err) {
+    setStatus(err.message || "Something went wrong.", true);
+  }
+}
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -353,8 +393,14 @@ form.addEventListener("submit", async (e) => {
 
   try {
     const result = await lookupFood(description);
-    addEntryFromResult(description, result);
 
+    if (result.type === "clarify") {
+      setStatus("");
+      showClarifyPanel(result.question);
+      return;
+    }
+
+    addEntryFromResult(description, result);
     input.value = "";
     setStatus("");
   } catch (err) {
@@ -363,6 +409,34 @@ form.addEventListener("submit", async (e) => {
     addButton.disabled = false;
     input.focus();
   }
+});
+
+clarifyForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!pendingClarification) return;
+
+  const answer = clarifyInput.value.trim();
+  const description = answer
+    ? `${pendingClarification.description} — ${answer}`
+    : pendingClarification.description;
+
+  hideClarifyPanel();
+  await finalizeEntry(description);
+  input.focus();
+});
+
+clarifySkipBtn.addEventListener("click", async () => {
+  if (!pendingClarification) return;
+  const description = pendingClarification.description;
+  hideClarifyPanel();
+  await finalizeEntry(description);
+  input.focus();
+});
+
+clarifyCancelBtn.addEventListener("click", () => {
+  hideClarifyPanel();
+  setStatus("");
+  input.focus();
 });
 
 function formatDayLabel(key) {
@@ -688,7 +762,7 @@ barcodeFallbackForm.addEventListener("submit", async (e) => {
 
   barcodeStatusEl.textContent = "Looking up nutrition...";
   try {
-    const result = await lookupFood(description);
+    const result = await lookupFood(description, { final: true });
     addEntryFromResult(description, result);
     closeBarcodeModal();
   } catch (err) {
