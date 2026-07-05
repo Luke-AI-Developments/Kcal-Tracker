@@ -2,6 +2,8 @@
 
 **Goal:** Build a free food-tracking app you can use daily on your phone, and publish it to GitHub as a portfolio piece for AI technician job applications.
 
+**Status: live and in daily use.** App is deployed at https://kcal-tracker-seven.vercel.app/, installed on Luke's phone, code on GitHub at Luke-AI-Developments/Kcal-Tracker. Phases 0-5 are complete. Phase 6 (portfolio polish) is in progress.
+
 **Decisions made:**
 - Nutrition lookup: Groq API (free tier, no credit card, generous rate limits) — send the food name/description to an LLM hosted on Groq and get back structured calorie/macro data. Chosen over Claude's API because Groq's free tier has no per-token cost, and over USDA's database because it handles natural, casual food descriptions much better.
 - Phone delivery: Progressive Web App — add to home screen, no app store fees
@@ -9,7 +11,7 @@
 
 ---
 
-## Phase 0 — Set up accounts and tools
+## Phase 0 — Set up accounts and tools ✅ Done
 - Create a free GitHub account (if you don't have one) — this is where your code lives and what you'll link in job applications.
 - Install Claude Code on your computer (the command-line tool that will write and edit your app's code with you directing it).
 - Confirm git is installed and working.
@@ -17,7 +19,7 @@
 
 **Outcome:** you have a place to write code and a place to publish it.
 
-## Phase 1 — Define the MVP and tech stack
+## Phase 1 — Define the MVP and tech stack ✅ Done
 - Lock in the minimum feature set:
   - Type a food name (and optionally a quantity) → app looks up calories, protein, carbs, fat
   - Add it to today's log
@@ -28,7 +30,7 @@
 
 **Outcome:** a clear, written definition of what "done" looks like for version 1.
 
-## Phase 2 — Build the MVP with Claude Code
+## Phase 2 — Build the MVP with Claude Code ✅ Done
 - Scaffold the project structure (HTML page, JS logic, CSS styling).
 - Build the "add food" form and the daily log list.
 - Get a free Groq API key and wire up a call that sends the typed food description to an LLM and gets back structured calories/protein/carbs/fat.
@@ -37,14 +39,14 @@
 
 **Outcome:** a working app on your computer that does the core job.
 
-## Phase 3 — Turn it into an installable PWA
+## Phase 3 — Turn it into an installable PWA ✅ Done
 - Add a web app manifest (app name, icon, colors).
 - Add a service worker so the app can load reliably and cache itself.
 - Add app icons.
 
 **Outcome:** the app can be "installed" like a real app, not just viewed as a webpage.
 
-## Phase 4 — Deploy for free and put it on your phone
+## Phase 4 — Deploy for free and put it on your phone ✅ Done
 - Push the code to GitHub.
 - Deploy it with a free static hosting service (e.g. Vercel, Netlify, or GitHub Pages) connected to your GitHub repo — every update you push goes live automatically.
 - Open the live link on your phone, tap "Add to Home Screen."
@@ -52,15 +54,20 @@
 
 **Outcome:** the app is live, free, and on your phone — the core goal is met here.
 
-## Phase 5 — Polish
-- Add a history view (see past days, not just today).
-- Add daily calorie/macro goals with progress indicators.
-- Add simple charts for macro breakdown.
-- Fix anything annoying you found from real daily use in Phase 4.
+## Phase 5 — Polish ✅ Done (and expanded beyond the original plan)
+- Add a history view (see past days, not just today). ✅
+- Add daily calorie/macro goals with progress indicators. ✅
+- Manual "calories burned" tracking (Garmin's official API turned out to require business/institutional approval and is currently suspended, so a manual field was the practical choice). ✅
+- Barcode scanner — scan a packaged product with the phone camera, looked up via the free Open Food Facts database. ✅
+- Photo-based logging — photograph food packaging plus a typed quantity note, interpreted by a Groq vision model. ✅
+- Quantity-aware nutrition scaling — numbers are calculated for the exact amount described, not a generic default serving. ✅
+- Clarifying questions — when a food is too ambiguous to estimate accurately (e.g. "2 slices of pizza" could vary hugely by brand/size), the app asks a short follow-up question instead of guessing, capped at one round. ✅
+- Network-first service worker fix so future updates always reach the installed phone app without needing a hard refresh. ✅
+- Simple macro breakdown charts — not yet built, optional if wanted later.
 
-**Outcome:** an app that feels complete and pleasant to use daily.
+**Outcome:** an app that feels complete and pleasant to use daily — done.
 
-## Phase 6 — Publish as a portfolio piece
+## Phase 6 — Publish as a portfolio piece 🔄 In progress
 - Clean up the code and folder structure.
 - Write a strong README: what it does, why you built it, what it's built with, screenshots, a link to the live app.
 - Make sure the GitHub repo is public and looks professional.

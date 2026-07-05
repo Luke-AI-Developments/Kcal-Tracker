@@ -2,9 +2,10 @@
   "name": "kcal-tracker",
   "version": "1.0.0",
   "private": true,
-  "description": "Log food in plain English, get calories and macros via Groq, track daily totals.",
+  "description": "Log food by typing it, scanning a barcode, or snapping a photo, and track daily calories/macros against a goal.",
+  "license": "MIT",
   "scripts": {
-    "dev": "vercel dev"
+    "dev": "node --env-file=.env dev-server.js"
   },
   "engines": {
     "node": ">=18"
