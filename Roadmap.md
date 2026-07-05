@@ -2,7 +2,7 @@
 
 **Goal:** Build a free food-tracking app you can use daily on your phone, and publish it to GitHub as a portfolio piece for AI technician job applications.
 
-**Status: live and in daily use.** App is deployed at https://kcal-tracker-seven.vercel.app/, installed on Luke's phone, code on GitHub at Luke-AI-Developments/Kcal-Tracker. Phases 0-5 are complete. Phase 6 (portfolio polish) is in progress.
+**Status: complete.** App is deployed at https://kcal-tracker-seven.vercel.app/, installed on Luke's phone, code on GitHub at Luke-AI-Developments/Kcal-Tracker. All 7 phases are done.
 
 **Decisions made:**
 - Nutrition lookup: Groq API (free tier, no credit card, generous rate limits) — send the food name/description to an LLM hosted on Groq and get back structured calorie/macro data. Chosen over Claude's API because Groq's free tier has no per-token cost, and over USDA's database because it handles natural, casual food descriptions much better.
@@ -54,27 +54,30 @@
 
 **Outcome:** the app is live, free, and on your phone — the core goal is met here.
 
-## Phase 5 — Polish ✅ Done (and expanded beyond the original plan)
+## Phase 5 — Polish ✅ Done (and expanded well beyond the original plan)
 - Add a history view (see past days, not just today). ✅
 - Add daily calorie/macro goals with progress indicators. ✅
-- Manual "calories burned" tracking (Garmin's official API turned out to require business/institutional approval and is currently suspended, so a manual field was the practical choice). ✅
+- Manual "calories burned" tracking (Garmin's official API turned out to require business/institutional approval and is currently suspended, so a manual field was the practical, honest choice). ✅
 - Barcode scanner — scan a packaged product with the phone camera, looked up via the free Open Food Facts database. ✅
 - Photo-based logging — photograph food packaging plus a typed quantity note, interpreted by a Groq vision model. ✅
 - Quantity-aware nutrition scaling — numbers are calculated for the exact amount described, not a generic default serving. ✅
 - Clarifying questions — when a food is too ambiguous to estimate accurately (e.g. "2 slices of pizza" could vary hugely by brand/size), the app asks a short follow-up question instead of guessing, capped at one round. ✅
 - Network-first service worker fix so future updates always reach the installed phone app without needing a hard refresh. ✅
-- Simple macro breakdown charts — not yet built, optional if wanted later.
+- Simple macro breakdown charts — not built; optional if wanted later.
 
 **Outcome:** an app that feels complete and pleasant to use daily — done.
 
-## Phase 6 — Publish as a portfolio piece 🔄 In progress
+## Phase 6 — Publish as a portfolio piece ✅ Done
 - Clean up the code and folder structure.
 - Write a strong README: what it does, why you built it, what it's built with, screenshots, a link to the live app.
-- Make sure the GitHub repo is public and looks professional.
+- Make sure the GitHub repo is public and looks professional, with a description, live link, and topic tags set.
+- LICENSE added (MIT, with proper attribution for the vendored html5-qrcode library).
 
-**Outcome:** a link you can put directly into job applications for AI technician roles.
+**Outcome:** a link you can put directly into job applications for AI technician roles — done.
 
 ---
 
-## Optional future upgrade
-Groq's free tier is rate-limited (30 requests/minute, 6,000 tokens/minute, 14,400 requests/day) — far more than a personal food tracker needs, but worth knowing about if you ever add more users. If you ever want a second opinion or higher-quality nutrition estimates, you could add the Claude API as a fallback — that's billed separately from your Claude Premium subscription at a small pay-as-you-go rate (roughly $0.10-$0.30/month for daily personal 
+## Optional future upgrades
+- Groq's free tier is rate-limited (30 requests/minute, 6,000 tokens/minute, 14,400 requests/day) — far more than a personal food tracker needs, but worth knowing about if you ever add more users. If you ever want a second opinion or higher-quality nutrition estimates, you could add the Claude API as a fallback — that's billed separately from your Claude Premium subscription at a small pay-as-you-go rate (roughly $0.10-$0.30/month for daily personal use).
+- Simple macro breakdown charts (pie/bar chart of protein/carbs/fat) — the one item from the original Phase 5 plan not yet built.
+- Garmin calories-burned auto-sync — deliberately skipped since Garmin's official developer program requires business/institutional approval and is currently suspended; a manual entry field was used instead as the honest, low-risk choice.
