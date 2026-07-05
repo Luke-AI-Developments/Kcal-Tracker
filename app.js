@@ -38,6 +38,11 @@ const macroBarFills = {
   carbs: document.getElementById("carbs-bar-fill"),
   fat: document.getElementById("fat-bar-fill"),
 };
+const macroGoalLabels = {
+  protein: document.getElementById("protein-goal-label"),
+  carbs: document.getElementById("carbs-goal-label"),
+  fat: document.getElementById("fat-goal-label"),
+};
 
 const burnedDisplay = document.getElementById("burned-display");
 const burnedStatusEl = document.getElementById("burned-status");
@@ -212,9 +217,10 @@ function renderBurned(burned) {
   }
 }
 
-function renderMacroGoal(goalValue, actualValue, trackEl, fillEl) {
+function renderMacroGoal(goalValue, actualValue, trackEl, fillEl, labelEl) {
   if (!goalValue) {
     trackEl.hidden = true;
+    labelEl.hidden = true;
     return;
   }
 
@@ -222,6 +228,9 @@ function renderMacroGoal(goalValue, actualValue, trackEl, fillEl) {
   const pct = Math.min(100, (actualValue / goalValue) * 100);
   fillEl.style.width = `${pct}%`;
   fillEl.classList.toggle("over", actualValue > goalValue);
+
+  labelEl.hidden = false;
+  labelEl.textContent = `of ${goalValue}g`;
 }
 
 function renderGoal() {
@@ -230,9 +239,9 @@ function renderGoal() {
   const burned = loadBurned();
 
   renderCalorieGoal(goal.calories, Math.round(totals.calories), burned);
-  renderMacroGoal(goal.protein, totals.protein, macroBarTracks.protein, macroBarFills.protein);
-  renderMacroGoal(goal.carbs, totals.carbs, macroBarTracks.carbs, macroBarFills.carbs);
-  renderMacroGoal(goal.fat, totals.fat, macroBarTracks.fat, macroBarFills.fat);
+  renderMacroGoal(goal.protein, totals.protein, macroBarTracks.protein, macroBarFills.protein, macroGoalLabels.protein);
+  renderMacroGoal(goal.carbs, totals.carbs, macroBarTracks.carbs, macroBarFills.carbs, macroGoalLabels.carbs);
+  renderMacroGoal(goal.fat, totals.fat, macroBarTracks.fat, macroBarFills.fat, macroGoalLabels.fat);
   renderBurned(burned);
 
   const anyGoalSet = goal.calories || goal.protein || goal.carbs || goal.fat;

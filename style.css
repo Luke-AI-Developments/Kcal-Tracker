@@ -347,6 +347,17 @@ header h1 {
   background: var(--danger);
 }
 
+.macro-goal-label {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin-top: 3px;
+}
+
+.macro-goal-label[hidden] {
+  display: none;
+}
+
 .entry-form {
   display: flex;
   gap: 8px;
