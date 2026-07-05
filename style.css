@@ -34,6 +34,10 @@ body {
   margin-top: 32px;
 }
 
+.app-footer p {
+  margin: 0 0 6px;
+}
+
 .app-footer a {
   color: var(--text-dim);
   text-decoration: underline;
