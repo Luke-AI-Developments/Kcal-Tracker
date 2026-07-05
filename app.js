@@ -21,8 +21,23 @@ const goalBarFill = document.getElementById("goal-bar-fill");
 const goalStatusEl = document.getElementById("goal-status");
 const goalEditBtn = document.getElementById("goal-edit-btn");
 const goalForm = document.getElementById("goal-form");
-const goalInput = document.getElementById("goal-input");
 const goalCancelBtn = document.getElementById("goal-cancel-btn");
+
+const goalCaloriesInput = document.getElementById("goal-input-calories");
+const goalProteinInput = document.getElementById("goal-input-protein");
+const goalCarbsInput = document.getElementById("goal-input-carbs");
+const goalFatInput = document.getElementById("goal-input-fat");
+
+const macroBarTracks = {
+  protein: document.getElementById("protein-bar-track"),
+  carbs: document.getElementById("carbs-bar-track"),
+  fat: document.getElementById("fat-bar-track"),
+};
+const macroBarFills = {
+  protein: document.getElementById("protein-bar-fill"),
+  carbs: document.getElementById("carbs-bar-fill"),
+  fat: document.getElementById("fat-bar-fill"),
+};
 
 const LOG_KEY_PREFIX = "kcal-log-";
 const GOAL_KEY = "kcal-goal";
@@ -97,39 +112,83 @@ function renderTotals() {
   totalFatEl.textContent = `${round(totals.fat)}g`;
 }
 
-function loadGoal() {
-  const raw = localStorage.getItem(GOAL_KEY);
-  const value = Number(raw);
+function normalizeGoalValue(value) {
   return value > 0 ? value : null;
 }
 
-function saveGoal(value) {
-  localStorage.setItem(GOAL_KEY, String(value));
+function loadGoal() {
+  const raw = localStorage.getItem(GOAL_KEY);
+  if (!raw) return { calories: null, protein: null, carbs: null, fat: null };
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") {
+      return {
+        calories: normalizeGoalValue(parsed.calories),
+        protein: normalizeGoalValue(parsed.protein),
+        carbs: normalizeGoalValue(parsed.carbs),
+        fat: normalizeGoalValue(parsed.fat),
+      };
+    }
+  } catch {
+    // fall through to legacy plain-number format below
+  }
+
+  // legacy format: a bare calorie number stored before macro goals existed
+  return {
+    calories: normalizeGoalValue(Number(raw)),
+    protein: null,
+    carbs: null,
+    fat: null,
+  };
+}
+
+function saveGoal(goal) {
+  localStorage.setItem(GOAL_KEY, JSON.stringify(goal));
+}
+
+function renderCalorieGoal(goalCalories, calories) {
+  if (!goalCalories) {
+    goalBarFill.style.width = "0%";
+    goalBarFill.classList.remove("over");
+    goalStatusEl.textContent = "No daily goal set";
+    return;
+  }
+
+  const pct = Math.min(100, (calories / goalCalories) * 100);
+  goalBarFill.style.width = `${pct}%`;
+  goalBarFill.classList.toggle("over", calories > goalCalories);
+
+  if (calories > goalCalories) {
+    goalStatusEl.textContent = `${calories} / ${goalCalories} kcal · ${calories - goalCalories} over`;
+  } else {
+    goalStatusEl.textContent = `${calories} / ${goalCalories} kcal · ${goalCalories - calories} left`;
+  }
+}
+
+function renderMacroGoal(goalValue, actualValue, trackEl, fillEl) {
+  if (!goalValue) {
+    trackEl.hidden = true;
+    return;
+  }
+
+  trackEl.hidden = false;
+  const pct = Math.min(100, (actualValue / goalValue) * 100);
+  fillEl.style.width = `${pct}%`;
+  fillEl.classList.toggle("over", actualValue > goalValue);
 }
 
 function renderGoal() {
   const goal = loadGoal();
   const totals = computeTotals(entries);
-  const calories = Math.round(totals.calories);
 
-  if (!goal) {
-    goalBarFill.style.width = "0%";
-    goalBarFill.classList.remove("over");
-    goalStatusEl.textContent = "No daily goal set";
-    goalEditBtn.textContent = "Set goal";
-    return;
-  }
+  renderCalorieGoal(goal.calories, Math.round(totals.calories));
+  renderMacroGoal(goal.protein, totals.protein, macroBarTracks.protein, macroBarFills.protein);
+  renderMacroGoal(goal.carbs, totals.carbs, macroBarTracks.carbs, macroBarFills.carbs);
+  renderMacroGoal(goal.fat, totals.fat, macroBarTracks.fat, macroBarFills.fat);
 
-  const pct = Math.min(100, (calories / goal) * 100);
-  goalBarFill.style.width = `${pct}%`;
-  goalBarFill.classList.toggle("over", calories > goal);
-
-  if (calories > goal) {
-    goalStatusEl.textContent = `${calories} / ${goal} kcal · ${calories - goal} over`;
-  } else {
-    goalStatusEl.textContent = `${calories} / ${goal} kcal · ${goal - calories} left`;
-  }
-  goalEditBtn.textContent = "Edit goal";
+  const anyGoalSet = goal.calories || goal.protein || goal.carbs || goal.fat;
+  goalEditBtn.textContent = anyGoalSet ? "Edit goal" : "Set goal";
 }
 
 function renderLog() {
@@ -357,10 +416,14 @@ tabTodayBtn.addEventListener("click", showTodayView);
 tabHistoryBtn.addEventListener("click", showHistoryView);
 
 goalEditBtn.addEventListener("click", () => {
-  goalInput.value = loadGoal() || "";
+  const goal = loadGoal();
+  goalCaloriesInput.value = goal.calories || "";
+  goalProteinInput.value = goal.protein || "";
+  goalCarbsInput.value = goal.carbs || "";
+  goalFatInput.value = goal.fat || "";
   goalDisplay.hidden = true;
   goalForm.hidden = false;
-  goalInput.focus();
+  goalCaloriesInput.focus();
 });
 
 goalCancelBtn.addEventListener("click", () => {
@@ -370,10 +433,12 @@ goalCancelBtn.addEventListener("click", () => {
 
 goalForm.addEventListener("submit", (e) => {
   e.preventDefault();
-  const value = Number(goalInput.value);
-  if (value > 0) {
-    saveGoal(value);
-  }
+  saveGoal({
+    calories: normalizeGoalValue(Number(goalCaloriesInput.value)),
+    protein: normalizeGoalValue(Number(goalProteinInput.value)),
+    carbs: normalizeGoalValue(Number(goalCarbsInput.value)),
+    fat: normalizeGoalValue(Number(goalFatInput.value)),
+  });
   goalForm.hidden = true;
   goalDisplay.hidden = false;
   renderGoal();

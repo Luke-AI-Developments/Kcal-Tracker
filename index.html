@@ -43,29 +43,49 @@
         </div>
 
         <form class="goal-form" id="goal-form" hidden>
-          <input
-            type="number"
-            id="goal-input"
-            min="1"
-            step="1"
-            placeholder="Daily calorie goal, e.g. 2000"
-          />
-          <button type="submit" id="goal-save-btn">Save</button>
-          <button type="button" id="goal-cancel-btn">Cancel</button>
+          <label class="goal-field">
+            Calories
+            <input type="number" id="goal-input-calories" min="1" step="1" placeholder="e.g. 2000" />
+          </label>
+          <label class="goal-field">
+            Protein (g)
+            <input type="number" id="goal-input-protein" min="1" step="1" placeholder="optional" />
+          </label>
+          <label class="goal-field">
+            Carbs (g)
+            <input type="number" id="goal-input-carbs" min="1" step="1" placeholder="optional" />
+          </label>
+          <label class="goal-field">
+            Fat (g)
+            <input type="number" id="goal-input-fat" min="1" step="1" placeholder="optional" />
+          </label>
+          <div class="goal-form-actions">
+            <button type="submit" id="goal-save-btn">Save</button>
+            <button type="button" id="goal-cancel-btn">Cancel</button>
+          </div>
         </form>
 
         <div class="macro-row">
           <div class="macro">
             <span class="macro-value" id="total-protein">0g</span>
             <span class="macro-label">protein</span>
+            <div class="macro-bar-track" id="protein-bar-track" hidden>
+              <div class="macro-bar-fill" id="protein-bar-fill"></div>
+            </div>
           </div>
           <div class="macro">
             <span class="macro-value" id="total-carbs">0g</span>
             <span class="macro-label">carbs</span>
+            <div class="macro-bar-track" id="carbs-bar-track" hidden>
+              <div class="macro-bar-fill" id="carbs-bar-fill"></div>
+            </div>
           </div>
           <div class="macro">
             <span class="macro-value" id="total-fat">0g</span>
             <span class="macro-label">fat</span>
+            <div class="macro-bar-track" id="fat-bar-track" hidden>
+              <div class="macro-bar-fill" id="fat-bar-fill"></div>
+            </div>
           </div>
         </div>
       </section>
