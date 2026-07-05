@@ -1,4 +1,4 @@
-const CACHE_NAME = "kcal-tracker-v1";
+const CACHE_NAME = "kcal-tracker-v2";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -41,14 +41,17 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Network-first: always serve the latest deployed files when online, and
+  // only fall back to the cached copy when the network request fails
+  // (offline). A cache-first strategy here would strand returning users on
+  // whatever app shell was cached on their first visit, forever.
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((response) => {
+    fetch(event.request)
+      .then((response) => {
         const copy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         return response;
-      });
-    })
+      })
+      .catch(() => caches.match(event.request))
   );
 });
