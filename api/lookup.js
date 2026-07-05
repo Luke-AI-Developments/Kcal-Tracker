@@ -1,12 +1,22 @@
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
+const MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
 
-const SYSTEM_PROMPT = `You are a nutrition estimation assistant. Given a plain-English description of a food or meal (which may include quantity), estimate its total calories, protein, carbs, and fat.
+const SYSTEM_PROMPT = `You are a nutrition estimation assistant. Given a plain-English description of a food or meal, estimate its TOTAL calories, protein, carbs, and fat — scaled to the exact quantity described, not a default single serving.
 
-Respond with ONLY a JSON object in this exact shape, with numbers (not strings):
+Follow these steps:
+1. Identify the food item(s) and any quantity, weight, volume, or size word mentioned (e.g. "2 slices", "200g", "a large bowl").
+2. Estimate the nutrition for ONE standard reference unit of that food (e.g. one slice, 100g).
+3. Scale that reference linearly to the exact quantity described. For weights, scale from a 100g reference rather than defaulting to a typical serving size.
+4. Only assume a single typical serving if no quantity, weight, or size is mentioned at all.
+
+Worked examples:
+- "2 slices of pizza": one slice of pepperoni pizza is roughly 285 kcal, 12g protein, 36g carbs, 10g fat. Two slices scales all four numbers by 2x: ~570 kcal, ~24g protein, ~66g carbs, ~20g fat.
+- "200g chicken breast": grilled chicken breast is roughly 165 kcal, 31g protein, 0g carbs, 3.6g fat per 100g. 200g is 2x that reference: ~330 kcal, ~62g protein, 0g carbs, ~7g fat.
+
+Respond with ONLY a JSON object in this exact shape, with numbers (not strings), representing the TOTAL for the full quantity described:
 {"calories": number, "protein_g": number, "carbs_g": number, "fat_g": number}
 
-Use reasonable real-world nutrition estimates. If a quantity isn't specified, assume a typical single serving. Do not include any explanation, only the JSON object.`;
+Use reasonable real-world nutrition estimates. Do not include any explanation, only the JSON object.`;
 
 module.exports = async (req, res) => {
   const food = (req.query?.food || "").toString().trim();
