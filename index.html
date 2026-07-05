@@ -65,6 +65,24 @@
           </div>
         </form>
 
+        <div class="goal-section" id="burned-display">
+          <div class="goal-row">
+            <span class="goal-status" id="burned-status">No calories burned logged</span>
+            <button type="button" class="goal-edit-btn" id="burned-edit-btn">Log burned</button>
+          </div>
+        </div>
+
+        <form class="goal-form" id="burned-form" hidden>
+          <label class="goal-field goal-field-full">
+            Calories burned today
+            <input type="number" id="burned-input" min="0" step="1" placeholder="e.g. 400" />
+          </label>
+          <div class="goal-form-actions">
+            <button type="submit" id="burned-save-btn">Save</button>
+            <button type="button" id="burned-cancel-btn">Cancel</button>
+          </div>
+        </form>
+
         <div class="macro-row">
           <div class="macro">
             <span class="macro-value" id="total-protein">0g</span>

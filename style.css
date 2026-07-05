@@ -252,6 +252,10 @@ header h1 {
   color: var(--text-dim);
 }
 
+.goal-field-full {
+  grid-column: 1 / -1;
+}
+
 .goal-form input {
   padding: 10px 12px;
   border-radius: 10px;

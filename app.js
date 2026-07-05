@@ -39,18 +39,51 @@ const macroBarFills = {
   fat: document.getElementById("fat-bar-fill"),
 };
 
+const burnedDisplay = document.getElementById("burned-display");
+const burnedStatusEl = document.getElementById("burned-status");
+const burnedEditBtn = document.getElementById("burned-edit-btn");
+const burnedForm = document.getElementById("burned-form");
+const burnedInput = document.getElementById("burned-input");
+const burnedCancelBtn = document.getElementById("burned-cancel-btn");
+
 const LOG_KEY_PREFIX = "kcal-log-";
+const BURNED_KEY_PREFIX = "kcal-burned-";
 const GOAL_KEY = "kcal-goal";
 
-function dateKey(date) {
+function dateSuffix(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
-  return `${LOG_KEY_PREFIX}${y}-${m}-${d}`;
+  return `${y}-${m}-${d}`;
+}
+
+function dateKey(date) {
+  return `${LOG_KEY_PREFIX}${dateSuffix(date)}`;
 }
 
 function todayKey() {
   return dateKey(new Date());
+}
+
+function burnedKeyFor(date) {
+  return `${BURNED_KEY_PREFIX}${dateSuffix(date)}`;
+}
+
+function todayBurnedKey() {
+  return burnedKeyFor(new Date());
+}
+
+function loadBurned() {
+  const value = Number(localStorage.getItem(todayBurnedKey()));
+  return value > 0 ? value : 0;
+}
+
+function saveBurned(value) {
+  if (value > 0) {
+    localStorage.setItem(todayBurnedKey(), String(value));
+  } else {
+    localStorage.removeItem(todayBurnedKey());
+  }
 }
 
 function loadEntriesForKey(key) {
@@ -147,7 +180,7 @@ function saveGoal(goal) {
   localStorage.setItem(GOAL_KEY, JSON.stringify(goal));
 }
 
-function renderCalorieGoal(goalCalories, calories) {
+function renderCalorieGoal(goalCalories, calories, burned) {
   if (!goalCalories) {
     goalBarFill.style.width = "0%";
     goalBarFill.classList.remove("over");
@@ -155,14 +188,27 @@ function renderCalorieGoal(goalCalories, calories) {
     return;
   }
 
-  const pct = Math.min(100, (calories / goalCalories) * 100);
+  const effectiveGoal = goalCalories + burned;
+  const pct = Math.min(100, (calories / effectiveGoal) * 100);
   goalBarFill.style.width = `${pct}%`;
-  goalBarFill.classList.toggle("over", calories > goalCalories);
+  goalBarFill.classList.toggle("over", calories > effectiveGoal);
 
-  if (calories > goalCalories) {
-    goalStatusEl.textContent = `${calories} / ${goalCalories} kcal · ${calories - goalCalories} over`;
+  const burnedNote = burned > 0 ? ` (${goalCalories} + ${burned} burned)` : "";
+
+  if (calories > effectiveGoal) {
+    goalStatusEl.textContent = `${calories} / ${effectiveGoal} kcal${burnedNote} · ${calories - effectiveGoal} over`;
   } else {
-    goalStatusEl.textContent = `${calories} / ${goalCalories} kcal · ${goalCalories - calories} left`;
+    goalStatusEl.textContent = `${calories} / ${effectiveGoal} kcal${burnedNote} · ${effectiveGoal - calories} left`;
+  }
+}
+
+function renderBurned(burned) {
+  if (burned > 0) {
+    burnedStatusEl.textContent = `${burned} kcal burned today`;
+    burnedEditBtn.textContent = "Edit burned";
+  } else {
+    burnedStatusEl.textContent = "No calories burned logged";
+    burnedEditBtn.textContent = "Log burned";
   }
 }
 
@@ -181,11 +227,13 @@ function renderMacroGoal(goalValue, actualValue, trackEl, fillEl) {
 function renderGoal() {
   const goal = loadGoal();
   const totals = computeTotals(entries);
+  const burned = loadBurned();
 
-  renderCalorieGoal(goal.calories, Math.round(totals.calories));
+  renderCalorieGoal(goal.calories, Math.round(totals.calories), burned);
   renderMacroGoal(goal.protein, totals.protein, macroBarTracks.protein, macroBarFills.protein);
   renderMacroGoal(goal.carbs, totals.carbs, macroBarTracks.carbs, macroBarFills.carbs);
   renderMacroGoal(goal.fat, totals.fat, macroBarTracks.fat, macroBarFills.fat);
+  renderBurned(burned);
 
   const anyGoalSet = goal.calories || goal.protein || goal.carbs || goal.fat;
   goalEditBtn.textContent = anyGoalSet ? "Edit goal" : "Set goal";
@@ -441,6 +489,26 @@ goalForm.addEventListener("submit", (e) => {
   });
   goalForm.hidden = true;
   goalDisplay.hidden = false;
+  renderGoal();
+});
+
+burnedEditBtn.addEventListener("click", () => {
+  burnedInput.value = loadBurned() || "";
+  burnedDisplay.hidden = true;
+  burnedForm.hidden = false;
+  burnedInput.focus();
+});
+
+burnedCancelBtn.addEventListener("click", () => {
+  burnedForm.hidden = true;
+  burnedDisplay.hidden = false;
+});
+
+burnedForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  saveBurned(Number(burnedInput.value) || 0);
+  burnedForm.hidden = true;
+  burnedDisplay.hidden = false;
   renderGoal();
 });
 
