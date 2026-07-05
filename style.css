@@ -596,20 +596,15 @@ header h1 {
   margin: 0 0 4px;
 }
 
-#photo-file-input {
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface-alt);
-  color: var(--text);
-  font-size: 0.85rem;
-}
-
-#photo-capture .goal-form-actions,
+#photo-start .goal-form-actions,
+#photo-camera .goal-form-actions,
+#photo-preview .goal-form-actions,
 #barcode-confirm .goal-form-actions {
   margin-top: 4px;
 }
 
+#photo-take-btn,
+#photo-capture-btn,
 #photo-analyze-btn,
 #barcode-add-btn,
 #photo-add-btn {
@@ -617,7 +612,9 @@ header h1 {
   color: #0f1115;
 }
 
-#photo-capture-cancel-btn,
+#photo-upload-btn,
+#photo-camera-cancel-btn,
+#photo-retake-btn,
 #barcode-cancel-confirm-btn,
 #photo-retry-btn {
   background: var(--surface-alt);
@@ -625,7 +622,24 @@ header h1 {
   border: 1px solid var(--border);
 }
 
-#photo-capture,
+#photo-video {
+  width: 100%;
+  border-radius: 12px;
+  background: #000;
+  max-height: 50vh;
+}
+
+#photo-preview-img {
+  width: 100%;
+  max-height: 40vh;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #000;
+}
+
+#photo-start,
+#photo-camera,
+#photo-preview,
 #photo-confirm,
 #barcode-confirm,
 #barcode-fallback {
@@ -634,7 +648,9 @@ header h1 {
   gap: 10px;
 }
 
-#photo-capture[hidden],
+#photo-start[hidden],
+#photo-camera[hidden],
+#photo-preview[hidden],
 #photo-confirm[hidden],
 #barcode-confirm[hidden],
 #barcode-fallback[hidden] {

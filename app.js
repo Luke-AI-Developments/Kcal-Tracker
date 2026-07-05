@@ -698,11 +698,23 @@ barcodeFallbackForm.addEventListener("submit", async (e) => {
 
 const photoModal = document.getElementById("photo-modal");
 const photoModalClose = document.getElementById("photo-modal-close");
-const photoCaptureEl = document.getElementById("photo-capture");
+
+const photoStartEl = document.getElementById("photo-start");
+const photoTakeBtn = document.getElementById("photo-take-btn");
+const photoUploadBtn = document.getElementById("photo-upload-btn");
 const photoFileInput = document.getElementById("photo-file-input");
+
+const photoCameraEl = document.getElementById("photo-camera");
+const photoVideoEl = document.getElementById("photo-video");
+const photoCaptureBtn = document.getElementById("photo-capture-btn");
+const photoCameraCancelBtn = document.getElementById("photo-camera-cancel-btn");
+
+const photoPreviewEl = document.getElementById("photo-preview");
+const photoPreviewImg = document.getElementById("photo-preview-img");
 const photoQuantityInput = document.getElementById("photo-quantity-input");
 const photoAnalyzeBtn = document.getElementById("photo-analyze-btn");
-const photoCaptureCancelBtn = document.getElementById("photo-capture-cancel-btn");
+const photoRetakeBtn = document.getElementById("photo-retake-btn");
+
 const photoStatusEl = document.getElementById("photo-status");
 const photoConfirmEl = document.getElementById("photo-confirm");
 const photoResultDescEl = document.getElementById("photo-result-desc");
@@ -711,14 +723,32 @@ const photoAddBtn = document.getElementById("photo-add-btn");
 const photoRetryBtn = document.getElementById("photo-retry-btn");
 
 let currentPhotoResult = null;
+let capturedPhotoDataUrl = null;
+let photoCameraStream = null;
+
+function showPhotoPanel(panel) {
+  photoStartEl.hidden = panel !== photoStartEl;
+  photoCameraEl.hidden = panel !== photoCameraEl;
+  photoPreviewEl.hidden = panel !== photoPreviewEl;
+}
+
+function stopPhotoCamera() {
+  if (photoCameraStream) {
+    photoCameraStream.getTracks().forEach((track) => track.stop());
+    photoCameraStream = null;
+  }
+  photoVideoEl.srcObject = null;
+}
 
 function resetPhotoModal() {
   photoStatusEl.textContent = "";
   photoConfirmEl.hidden = true;
-  photoCaptureEl.hidden = false;
   photoFileInput.value = "";
   photoQuantityInput.value = "";
   currentPhotoResult = null;
+  capturedPhotoDataUrl = null;
+  stopPhotoCamera();
+  showPhotoPanel(photoStartEl);
 }
 
 function openPhotoModal() {
@@ -727,6 +757,7 @@ function openPhotoModal() {
 }
 
 function closePhotoModal() {
+  stopPhotoCamera();
   photoModal.hidden = true;
 }
 
@@ -765,14 +796,84 @@ function downscaleImage(dataUrl, maxDim = 1024, quality = 0.7) {
   });
 }
 
+function captureFrameFromVideo(video, maxDim = 1024, quality = 0.7) {
+  let { videoWidth: width, videoHeight: height } = video;
+  if (width > maxDim || height > maxDim) {
+    if (width > height) {
+      height = Math.round((height * maxDim) / width);
+      width = maxDim;
+    } else {
+      width = Math.round((width * maxDim) / height);
+      height = maxDim;
+    }
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0, width, height);
+  return canvas.toDataURL("image/jpeg", quality);
+}
+
 addPhotoBtn.addEventListener("click", openPhotoModal);
 photoModalClose.addEventListener("click", closePhotoModal);
-photoCaptureCancelBtn.addEventListener("click", closePhotoModal);
+
+photoTakeBtn.addEventListener("click", async () => {
+  photoStatusEl.textContent = "";
+  try {
+    photoCameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" },
+      audio: false,
+    });
+    photoVideoEl.srcObject = photoCameraStream;
+    await photoVideoEl.play();
+    showPhotoPanel(photoCameraEl);
+  } catch (err) {
+    console.error("Camera start failed:", err);
+    photoStatusEl.textContent =
+      "Couldn't access the camera. Check permissions, or choose a photo from your gallery instead.";
+  }
+});
+
+photoCameraCancelBtn.addEventListener("click", () => {
+  stopPhotoCamera();
+  showPhotoPanel(photoStartEl);
+});
+
+photoCaptureBtn.addEventListener("click", () => {
+  capturedPhotoDataUrl = captureFrameFromVideo(photoVideoEl);
+  stopPhotoCamera();
+  photoPreviewImg.src = capturedPhotoDataUrl;
+  showPhotoPanel(photoPreviewEl);
+});
+
+photoUploadBtn.addEventListener("click", () => {
+  photoFileInput.click();
+});
+
+photoFileInput.addEventListener("change", async () => {
+  const file = photoFileInput.files?.[0];
+  if (!file) return;
+
+  try {
+    const rawDataUrl = await readFileAsDataURL(file);
+    capturedPhotoDataUrl = await downscaleImage(rawDataUrl);
+    photoPreviewImg.src = capturedPhotoDataUrl;
+    showPhotoPanel(photoPreviewEl);
+  } catch (err) {
+    photoStatusEl.textContent = err.message || "Couldn't read that photo.";
+  }
+});
+
+photoRetakeBtn.addEventListener("click", () => {
+  capturedPhotoDataUrl = null;
+  photoStatusEl.textContent = "";
+  showPhotoPanel(photoStartEl);
+});
 
 photoAnalyzeBtn.addEventListener("click", async () => {
-  const file = photoFileInput.files?.[0];
-  if (!file) {
-    photoStatusEl.textContent = "Choose or take a photo first.";
+  if (!capturedPhotoDataUrl) {
+    photoStatusEl.textContent = "Take or choose a photo first.";
     return;
   }
 
@@ -780,14 +881,12 @@ photoAnalyzeBtn.addEventListener("click", async () => {
   photoStatusEl.textContent = "Analyzing photo...";
 
   try {
-    const rawDataUrl = await readFileAsDataURL(file);
-    const scaledDataUrl = await downscaleImage(rawDataUrl);
     const quantity = photoQuantityInput.value.trim();
 
     const res = await fetch("/api/vision-lookup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ image: scaledDataUrl, quantity }),
+      body: JSON.stringify({ image: capturedPhotoDataUrl, quantity }),
     });
 
     if (!res.ok) {
@@ -808,7 +907,7 @@ photoAnalyzeBtn.addEventListener("click", async () => {
     photoResultMacrosEl.textContent = `${Math.round(result.calories)} kcal · P ${round(
       result.protein_g
     )}g · C ${round(result.carbs_g)}g · F ${round(result.fat_g)}g`;
-    photoCaptureEl.hidden = true;
+    showPhotoPanel(null);
     photoStatusEl.textContent = "";
     photoConfirmEl.hidden = false;
   } catch (err) {
@@ -827,7 +926,7 @@ photoAddBtn.addEventListener("click", () => {
 
 photoRetryBtn.addEventListener("click", () => {
   photoConfirmEl.hidden = true;
-  photoCaptureEl.hidden = false;
+  showPhotoPanel(photoStartEl);
   photoStatusEl.textContent = "";
 });
 
