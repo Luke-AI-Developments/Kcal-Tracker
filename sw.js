@@ -1,4 +1,4 @@
-const CACHE_NAME = "kcal-tracker-v2";
+const CACHE_NAME = "kcal-tracker-v3";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -7,6 +7,7 @@ const APP_SHELL = [
   "/manifest.json",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
+  "/vendor/html5-qrcode.min.js",
 ];
 
 self.addEventListener("install", (event) => {

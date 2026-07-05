@@ -5,6 +5,7 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 const lookup = require("./api/lookup.js");
+const visionLookup = require("./api/vision-lookup.js");
 
 const PORT = process.env.PORT || 3000;
 
@@ -15,6 +16,25 @@ const MIME = {
   ".json": "application/json",
   ".png": "image/png",
 };
+
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      if (!raw) {
+        resolve({});
+        return;
+      }
+      try {
+        resolve(JSON.parse(raw));
+      } catch (err) {
+        reject(err);
+      }
+    });
+    req.on("error", reject);
+  });
+}
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
@@ -32,6 +52,30 @@ const server = http.createServer(async (req, res) => {
       },
     };
     await lookup({ query }, shim);
+    return;
+  }
+
+  if (url.pathname === "/api/vision-lookup") {
+    const shim = {
+      status(code) {
+        res.statusCode = code;
+        return shim;
+      },
+      json(body) {
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify(body));
+      },
+    };
+
+    let parsedBody;
+    try {
+      parsedBody = await readJsonBody(req);
+    } catch {
+      shim.status(400).json({ error: "Invalid JSON body." });
+      return;
+    }
+
+    await visionLookup({ method: req.method, body: parsedBody }, shim);
     return;
   }
 

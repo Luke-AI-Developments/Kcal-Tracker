@@ -309,6 +309,21 @@ function removeEntry(id) {
   render();
 }
 
+function addEntryFromResult(description, result) {
+  const entry = {
+    id: crypto.randomUUID(),
+    description,
+    calories: Number(result.calories) || 0,
+    protein_g: Number(result.protein_g) || 0,
+    carbs_g: Number(result.carbs_g) || 0,
+    fat_g: Number(result.fat_g) || 0,
+  };
+
+  entries.push(entry);
+  saveEntries(entries);
+  render();
+}
+
 async function lookupFood(description) {
   const url = `/api/lookup?food=${encodeURIComponent(description)}`;
   const res = await fetch(url);
@@ -338,19 +353,7 @@ form.addEventListener("submit", async (e) => {
 
   try {
     const result = await lookupFood(description);
-
-    const entry = {
-      id: crypto.randomUUID(),
-      description,
-      calories: Number(result.calories) || 0,
-      protein_g: Number(result.protein_g) || 0,
-      carbs_g: Number(result.carbs_g) || 0,
-      fat_g: Number(result.fat_g) || 0,
-    };
-
-    entries.push(entry);
-    saveEntries(entries);
-    render();
+    addEntryFromResult(description, result);
 
     input.value = "";
     setStatus("");
@@ -519,6 +522,313 @@ burnedForm.addEventListener("submit", (e) => {
   burnedForm.hidden = true;
   burnedDisplay.hidden = false;
   renderGoal();
+});
+
+const scanBarcodeBtn = document.getElementById("scan-barcode-btn");
+const addPhotoBtn = document.getElementById("add-photo-btn");
+
+const barcodeModal = document.getElementById("barcode-modal");
+const barcodeModalClose = document.getElementById("barcode-modal-close");
+const barcodeReaderEl = document.getElementById("barcode-reader");
+const barcodeStatusEl = document.getElementById("barcode-status");
+const barcodeConfirmEl = document.getElementById("barcode-confirm");
+const barcodeProductNameEl = document.getElementById("barcode-product-name");
+const barcodePer100gEl = document.getElementById("barcode-per-100g");
+const barcodeQuantityInput = document.getElementById("barcode-quantity-input");
+const barcodeAddBtn = document.getElementById("barcode-add-btn");
+const barcodeCancelConfirmBtn = document.getElementById("barcode-cancel-confirm-btn");
+const barcodeFallbackEl = document.getElementById("barcode-fallback");
+const barcodeFallbackForm = document.getElementById("barcode-fallback-form");
+const barcodeFallbackInput = document.getElementById("barcode-fallback-input");
+
+const BARCODE_FORMATS_SUPPORTED =
+  typeof Html5QrcodeSupportedFormats !== "undefined"
+    ? [
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.CODE_128,
+      ]
+    : undefined;
+
+let html5QrCodeInstance = null;
+let currentBarcodeProduct = null;
+
+function resetBarcodeModal() {
+  barcodeStatusEl.textContent = "";
+  barcodeConfirmEl.hidden = true;
+  barcodeFallbackEl.hidden = true;
+  barcodeReaderEl.hidden = false;
+  barcodeFallbackInput.value = "";
+  currentBarcodeProduct = null;
+}
+
+async function stopBarcodeScanner() {
+  if (!html5QrCodeInstance) return;
+  try {
+    await html5QrCodeInstance.stop();
+    html5QrCodeInstance.clear();
+  } catch {
+    // already stopped or never started — ignore
+  }
+  html5QrCodeInstance = null;
+}
+
+async function onBarcodeDecoded(decodedText) {
+  await stopBarcodeScanner();
+  barcodeReaderEl.hidden = true;
+  barcodeStatusEl.textContent = `Looking up barcode ${decodedText}...`;
+
+  try {
+    const res = await fetch(
+      `https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(decodedText)}.json`
+    );
+    const data = await res.json();
+
+    if (data.status !== 1 || !data.product) {
+      barcodeStatusEl.textContent = `No product found for barcode ${decodedText}.`;
+      barcodeFallbackEl.hidden = false;
+      return;
+    }
+
+    const product = data.product;
+    const n = product.nutriments || {};
+    const per100g = {
+      calories: Number(n["energy-kcal_100g"]) || 0,
+      protein: Number(n.proteins_100g) || 0,
+      carbs: Number(n.carbohydrates_100g) || 0,
+      fat: Number(n.fat_100g) || 0,
+    };
+
+    if (!per100g.calories) {
+      barcodeStatusEl.textContent = "That product doesn't have nutrition data on file.";
+      barcodeFallbackEl.hidden = false;
+      return;
+    }
+
+    currentBarcodeProduct = {
+      name: product.product_name || `Product ${decodedText}`,
+      per100g,
+    };
+
+    const defaultGrams =
+      Number(product.serving_quantity) > 0 ? Math.round(product.serving_quantity) : 100;
+
+    barcodeProductNameEl.textContent = currentBarcodeProduct.name;
+    barcodePer100gEl.textContent = `${Math.round(per100g.calories)} kcal / 100g · P ${round(
+      per100g.protein
+    )}g · C ${round(per100g.carbs)}g · F ${round(per100g.fat)}g`;
+    barcodeQuantityInput.value = defaultGrams;
+    barcodeStatusEl.textContent = "";
+    barcodeConfirmEl.hidden = false;
+  } catch (err) {
+    console.error("Open Food Facts lookup failed:", err);
+    barcodeStatusEl.textContent = "Lookup failed (network issue).";
+    barcodeFallbackEl.hidden = false;
+  }
+}
+
+async function openBarcodeModal() {
+  resetBarcodeModal();
+  barcodeModal.hidden = false;
+  barcodeStatusEl.textContent = "Point your camera at a barcode...";
+
+  try {
+    html5QrCodeInstance = new Html5Qrcode("barcode-reader");
+    await html5QrCodeInstance.start(
+      { facingMode: "environment" },
+      {
+        fps: 10,
+        qrbox: { width: 260, height: 160 },
+        formatsToSupport: BARCODE_FORMATS_SUPPORTED,
+      },
+      onBarcodeDecoded,
+      () => {
+        // per-frame "no barcode found yet" — expected, ignore
+      }
+    );
+  } catch (err) {
+    console.error("Camera start failed:", err);
+    barcodeStatusEl.textContent =
+      "Couldn't access the camera. Check permissions, or type the product name below.";
+    barcodeReaderEl.hidden = true;
+    barcodeFallbackEl.hidden = false;
+  }
+}
+
+async function closeBarcodeModal() {
+  await stopBarcodeScanner();
+  barcodeModal.hidden = true;
+}
+
+scanBarcodeBtn.addEventListener("click", openBarcodeModal);
+barcodeModalClose.addEventListener("click", closeBarcodeModal);
+barcodeCancelConfirmBtn.addEventListener("click", closeBarcodeModal);
+
+barcodeAddBtn.addEventListener("click", () => {
+  const grams = Number(barcodeQuantityInput.value) || 0;
+  if (!grams || !currentBarcodeProduct) return;
+
+  const factor = grams / 100;
+  const { name, per100g } = currentBarcodeProduct;
+  addEntryFromResult(`${name} (${grams}g)`, {
+    calories: per100g.calories * factor,
+    protein_g: per100g.protein * factor,
+    carbs_g: per100g.carbs * factor,
+    fat_g: per100g.fat * factor,
+  });
+  closeBarcodeModal();
+});
+
+barcodeFallbackForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const description = barcodeFallbackInput.value.trim();
+  if (!description) return;
+
+  barcodeStatusEl.textContent = "Looking up nutrition...";
+  try {
+    const result = await lookupFood(description);
+    addEntryFromResult(description, result);
+    closeBarcodeModal();
+  } catch (err) {
+    barcodeStatusEl.textContent = err.message || "Lookup failed.";
+  }
+});
+
+const photoModal = document.getElementById("photo-modal");
+const photoModalClose = document.getElementById("photo-modal-close");
+const photoCaptureEl = document.getElementById("photo-capture");
+const photoFileInput = document.getElementById("photo-file-input");
+const photoQuantityInput = document.getElementById("photo-quantity-input");
+const photoAnalyzeBtn = document.getElementById("photo-analyze-btn");
+const photoCaptureCancelBtn = document.getElementById("photo-capture-cancel-btn");
+const photoStatusEl = document.getElementById("photo-status");
+const photoConfirmEl = document.getElementById("photo-confirm");
+const photoResultDescEl = document.getElementById("photo-result-desc");
+const photoResultMacrosEl = document.getElementById("photo-result-macros");
+const photoAddBtn = document.getElementById("photo-add-btn");
+const photoRetryBtn = document.getElementById("photo-retry-btn");
+
+let currentPhotoResult = null;
+
+function resetPhotoModal() {
+  photoStatusEl.textContent = "";
+  photoConfirmEl.hidden = true;
+  photoCaptureEl.hidden = false;
+  photoFileInput.value = "";
+  photoQuantityInput.value = "";
+  currentPhotoResult = null;
+}
+
+function openPhotoModal() {
+  resetPhotoModal();
+  photoModal.hidden = false;
+}
+
+function closePhotoModal() {
+  photoModal.hidden = true;
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Couldn't read that file."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function downscaleImage(dataUrl, maxDim = 1024, quality = 0.7) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => reject(new Error("Couldn't read that image."));
+    img.src = dataUrl;
+  });
+}
+
+addPhotoBtn.addEventListener("click", openPhotoModal);
+photoModalClose.addEventListener("click", closePhotoModal);
+photoCaptureCancelBtn.addEventListener("click", closePhotoModal);
+
+photoAnalyzeBtn.addEventListener("click", async () => {
+  const file = photoFileInput.files?.[0];
+  if (!file) {
+    photoStatusEl.textContent = "Choose or take a photo first.";
+    return;
+  }
+
+  photoAnalyzeBtn.disabled = true;
+  photoStatusEl.textContent = "Analyzing photo...";
+
+  try {
+    const rawDataUrl = await readFileAsDataURL(file);
+    const scaledDataUrl = await downscaleImage(rawDataUrl);
+    const quantity = photoQuantityInput.value.trim();
+
+    const res = await fetch("/api/vision-lookup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: scaledDataUrl, quantity }),
+    });
+
+    if (!res.ok) {
+      let message = "Photo analysis failed. Try again, or add this food by typing instead.";
+      try {
+        const data = await res.json();
+        if (data?.error) message = data.error;
+      } catch {
+        // ignore parse errors
+      }
+      throw new Error(message);
+    }
+
+    const result = await res.json();
+    currentPhotoResult = result;
+
+    photoResultDescEl.textContent = result.description;
+    photoResultMacrosEl.textContent = `${Math.round(result.calories)} kcal · P ${round(
+      result.protein_g
+    )}g · C ${round(result.carbs_g)}g · F ${round(result.fat_g)}g`;
+    photoCaptureEl.hidden = true;
+    photoStatusEl.textContent = "";
+    photoConfirmEl.hidden = false;
+  } catch (err) {
+    photoStatusEl.textContent =
+      err.message || "Something went wrong. Try a clearer photo, or add this food by typing instead.";
+  } finally {
+    photoAnalyzeBtn.disabled = false;
+  }
+});
+
+photoAddBtn.addEventListener("click", () => {
+  if (!currentPhotoResult) return;
+  addEntryFromResult(currentPhotoResult.description, currentPhotoResult);
+  closePhotoModal();
+});
+
+photoRetryBtn.addEventListener("click", () => {
+  photoConfirmEl.hidden = true;
+  photoCaptureEl.hidden = false;
+  photoStatusEl.textContent = "";
 });
 
 renderDate();

@@ -122,6 +122,11 @@
         <button type="submit" id="add-button">Add</button>
       </form>
 
+      <div class="alt-entry-methods">
+        <button type="button" class="alt-method-btn" id="scan-barcode-btn">📷 Scan barcode</button>
+        <button type="button" class="alt-method-btn" id="add-photo-btn">🖼️ Add from photo</button>
+      </div>
+
       <p class="status" id="status"></p>
 
       <ul class="log" id="log-list"></ul>
@@ -131,12 +136,81 @@
       <ul class="history-list" id="history-list"></ul>
     </section>
 
+    <div class="modal-overlay" id="barcode-modal" hidden>
+      <div class="modal-panel">
+        <div class="modal-header">
+          <h2>Scan barcode</h2>
+          <button type="button" class="modal-close-btn" id="barcode-modal-close" aria-label="Close">×</button>
+        </div>
+
+        <div id="barcode-reader"></div>
+        <p class="modal-status" id="barcode-status"></p>
+
+        <div id="barcode-confirm" hidden>
+          <p class="modal-result-title" id="barcode-product-name"></p>
+          <p class="modal-hint" id="barcode-per-100g"></p>
+          <label class="goal-field goal-field-full">
+            Quantity (grams)
+            <input type="number" id="barcode-quantity-input" min="1" step="1" />
+          </label>
+          <div class="goal-form-actions">
+            <button type="button" id="barcode-add-btn">Add to log</button>
+            <button type="button" id="barcode-cancel-confirm-btn">Cancel</button>
+          </div>
+        </div>
+
+        <div id="barcode-fallback" hidden>
+          <p class="modal-hint">Type the product name instead:</p>
+          <form id="barcode-fallback-form" class="entry-form">
+            <input type="text" id="barcode-fallback-input" placeholder="Product name" autocomplete="off" />
+            <button type="submit">Look up</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="photo-modal" hidden>
+      <div class="modal-panel">
+        <div class="modal-header">
+          <h2>Add from photo</h2>
+          <button type="button" class="modal-close-btn" id="photo-modal-close" aria-label="Close">×</button>
+        </div>
+
+        <div id="photo-capture">
+          <label class="goal-field goal-field-full">
+            Photo of packaging
+            <input type="file" accept="image/*" capture="environment" id="photo-file-input" />
+          </label>
+          <label class="goal-field goal-field-full">
+            Quantity
+            <input type="text" id="photo-quantity-input" placeholder="e.g. half the packet, 150g" autocomplete="off" />
+          </label>
+          <div class="goal-form-actions">
+            <button type="button" id="photo-analyze-btn">Analyze photo</button>
+            <button type="button" id="photo-capture-cancel-btn">Cancel</button>
+          </div>
+        </div>
+
+        <p class="modal-status" id="photo-status"></p>
+
+        <div id="photo-confirm" hidden>
+          <p class="modal-result-title" id="photo-result-desc"></p>
+          <p class="modal-hint" id="photo-result-macros"></p>
+          <div class="goal-form-actions">
+            <button type="button" id="photo-add-btn">Add to log</button>
+            <button type="button" id="photo-retry-btn">Retry</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <footer class="app-footer">
       <p>Created by Luke AI Developments</p>
       <a href="https://github.com/Luke-AI-Developments" target="_blank" rel="noopener noreferrer">Please explore my GitHub</a>
     </footer>
   </div>
 
+  <script src="vendor/html5-qrcode.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

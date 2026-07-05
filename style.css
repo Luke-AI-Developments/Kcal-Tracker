@@ -496,3 +496,147 @@ header h1 {
   padding: 40px 0;
   font-size: 0.9rem;
 }
+
+.alt-entry-methods {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.alt-method-btn {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.alt-method-btn:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  padding: 0;
+}
+
+.modal-overlay[hidden] {
+  display: none;
+}
+
+.modal-panel {
+  width: 100%;
+  max-width: 480px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  padding: 20px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.modal-close-btn {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#barcode-reader {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  min-height: 200px;
+}
+
+.modal-status {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin: 12px 0;
+  text-align: center;
+}
+
+.modal-hint {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin: 0 0 12px;
+}
+
+.modal-result-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+#photo-file-input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+#photo-capture .goal-form-actions,
+#barcode-confirm .goal-form-actions {
+  margin-top: 4px;
+}
+
+#photo-analyze-btn,
+#barcode-add-btn,
+#photo-add-btn {
+  background: var(--accent);
+  color: #0f1115;
+}
+
+#photo-capture-cancel-btn,
+#barcode-cancel-confirm-btn,
+#photo-retry-btn {
+  background: var(--surface-alt);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+
+#photo-capture,
+#photo-confirm,
+#barcode-confirm,
+#barcode-fallback {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#photo-capture[hidden],
+#photo-confirm[hidden],
+#barcode-confirm[hidden],
+#barcode-fallback[hidden] {
+  display: none;
+}
