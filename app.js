@@ -715,6 +715,7 @@ const photoQuantityInput = document.getElementById("photo-quantity-input");
 const photoAnalyzeBtn = document.getElementById("photo-analyze-btn");
 const photoRetakeBtn = document.getElementById("photo-retake-btn");
 
+const photoTipEl = document.getElementById("photo-tip");
 const photoStatusEl = document.getElementById("photo-status");
 const photoConfirmEl = document.getElementById("photo-confirm");
 const photoResultDescEl = document.getElementById("photo-result-desc");
@@ -743,6 +744,7 @@ function stopPhotoCamera() {
 function resetPhotoModal() {
   photoStatusEl.textContent = "";
   photoConfirmEl.hidden = true;
+  photoTipEl.hidden = false;
   photoFileInput.value = "";
   photoQuantityInput.value = "";
   currentPhotoResult = null;
@@ -908,6 +910,7 @@ photoAnalyzeBtn.addEventListener("click", async () => {
       result.protein_g
     )}g · C ${round(result.carbs_g)}g · F ${round(result.fat_g)}g`;
     showPhotoPanel(null);
+    photoTipEl.hidden = true;
     photoStatusEl.textContent = "";
     photoConfirmEl.hidden = false;
   } catch (err) {
@@ -926,6 +929,7 @@ photoAddBtn.addEventListener("click", () => {
 
 photoRetryBtn.addEventListener("click", () => {
   photoConfirmEl.hidden = true;
+  photoTipEl.hidden = false;
   showPhotoPanel(photoStartEl);
   photoStatusEl.textContent = "";
 });
