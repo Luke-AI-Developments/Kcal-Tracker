@@ -15,6 +15,7 @@ const tabHistoryBtn = document.getElementById("tab-history");
 const viewToday = document.getElementById("view-today");
 const viewHistory = document.getElementById("view-history");
 const historyList = document.getElementById("history-list");
+const exportDataBtn = document.getElementById("export-data-btn");
 
 const goalDisplay = document.getElementById("goal-display");
 const goalBarFill = document.getElementById("goal-bar-fill");
@@ -530,6 +531,55 @@ function renderHistory() {
     historyList.appendChild(li);
   });
 }
+
+function exportAllData() {
+  const days = {};
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+
+    if (key.startsWith(LOG_KEY_PREFIX)) {
+      const date = key.slice(LOG_KEY_PREFIX.length);
+      const dayEntries = loadEntriesForKey(key);
+      if (dayEntries.length > 0) {
+        days[date] = days[date] || {};
+        days[date].entries = dayEntries;
+      }
+    } else if (key.startsWith(BURNED_KEY_PREFIX)) {
+      const date = key.slice(BURNED_KEY_PREFIX.length);
+      const burned = Number(localStorage.getItem(key));
+      if (burned > 0) {
+        days[date] = days[date] || {};
+        days[date].burned = burned;
+      }
+    }
+  }
+
+  return {
+    exportedAt: new Date().toISOString(),
+    goal: loadGoal(),
+    days,
+  };
+}
+
+function downloadJSON(data, filename) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  URL.revokeObjectURL(url);
+}
+
+exportDataBtn.addEventListener("click", () => {
+  const data = exportAllData();
+  downloadJSON(data, `kcal-tracker-export-${dateSuffix(new Date())}.json`);
+});
 
 function showTodayView() {
   viewToday.hidden = false;

@@ -178,6 +178,25 @@ header h1 {
   font-weight: 600;
 }
 
+.export-btn {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.export-btn:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
 .totals {
   background: var(--surface);
   border: 1px solid var(--border);
