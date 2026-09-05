@@ -55,6 +55,32 @@ answers.
   for anything already loaded, and a network-first service worker
   means new deployments always show up without a stale cache trap.
 
+## Healthier swap suggestions (vector RAG)
+
+A "Swap" tab suggests a healthier alternative to a food you're considering,
+drawn only from foods you've actually logged before — not a generic recipe
+database. Type in something like "Big Mac" and it retrieves nutritionally
+similar items from your own food history, then generates a suggestion
+grounded strictly in that retrieved data, citing real logged numbers
+rather than guessing from general knowledge.
+
+**Pipeline:** embed each logged food entry once and store the vectors →
+embed the incoming query → retrieve the closest matches by cosine
+similarity → generate a grounded answer using only those matches.
+
+**Tech:** Google's `gemini-embedding-001` for embeddings (768-dim, with
+matching `RETRIEVAL_DOCUMENT` / `RETRIEVAL_QUERY` task types for stored
+vs. query text), cosine similarity for retrieval (brute-force over ~250
+entries — no vector DB needed at this scale), and Groq for grounded
+generation.
+
+**Measured, not assumed:** a 14-query hand-labeled retrieval eval scores
+**0.857 mean precision@5** (see `rag/eval.js`).
+
+**Known limitation:** retrieval only searches your own logged history, so
+it can only ever surface a food you've already eaten before — it can't
+suggest a genuinely new recipe you've never logged.
+
 ## Tech stack
 
 Plain HTML, CSS, and vanilla JavaScript — no framework, no build step,
