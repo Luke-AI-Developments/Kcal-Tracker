@@ -6,6 +6,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const lookup = require("./api/lookup.js");
 const visionLookup = require("./api/vision-lookup.js");
+const swapSuggestion = require("./api/swap-suggestion.js");
 
 const PORT = process.env.PORT || 3000;
 
@@ -52,6 +53,22 @@ const server = http.createServer(async (req, res) => {
       },
     };
     await lookup({ query }, shim);
+    return;
+  }
+
+  if (url.pathname === "/api/swap-suggestion") {
+    const query = Object.fromEntries(url.searchParams);
+    const shim = {
+      status(code) {
+        res.statusCode = code;
+        return shim;
+      },
+      json(body) {
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify(body));
+      },
+    };
+    await swapSuggestion({ query }, shim);
     return;
   }
 

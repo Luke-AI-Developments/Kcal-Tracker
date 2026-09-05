@@ -23,6 +23,7 @@
     <nav class="tabs">
       <button type="button" class="tab-button active" id="tab-today">Today</button>
       <button type="button" class="tab-button" id="tab-history">History</button>
+      <button type="button" class="tab-button" id="tab-swap">Swap</button>
     </nav>
 
     <section id="view-today">
@@ -147,6 +148,18 @@
     <section id="view-history" hidden>
       <ul class="history-list" id="history-list"></ul>
       <button type="button" class="export-btn" id="export-data-btn">⬇️ Export my data</button>
+    </section>
+
+    <section id="view-swap" hidden>
+      <p class="modal-hint">
+        Name a food you're considering, and get a healthier swap suggested from foods already in your own log.
+      </p>
+      <form id="swap-form" class="entry-form">
+        <input type="text" id="swap-input" placeholder="e.g. Big Mac, pancakes, sushi" autocomplete="off" required />
+        <button type="submit" id="swap-button">Suggest</button>
+      </form>
+      <p class="status" id="swap-status"></p>
+      <div class="swap-result" id="swap-result" hidden></div>
     </section>
 
     <div class="modal-overlay" id="barcode-modal" hidden>

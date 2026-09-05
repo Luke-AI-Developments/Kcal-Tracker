@@ -12,10 +12,18 @@ const totalFatEl = document.getElementById("total-fat");
 
 const tabTodayBtn = document.getElementById("tab-today");
 const tabHistoryBtn = document.getElementById("tab-history");
+const tabSwapBtn = document.getElementById("tab-swap");
 const viewToday = document.getElementById("view-today");
 const viewHistory = document.getElementById("view-history");
+const viewSwap = document.getElementById("view-swap");
 const historyList = document.getElementById("history-list");
 const exportDataBtn = document.getElementById("export-data-btn");
+
+const swapForm = document.getElementById("swap-form");
+const swapInput = document.getElementById("swap-input");
+const swapButton = document.getElementById("swap-button");
+const swapStatusEl = document.getElementById("swap-status");
+const swapResultEl = document.getElementById("swap-result");
 
 const goalDisplay = document.getElementById("goal-display");
 const goalBarFill = document.getElementById("goal-bar-fill");
@@ -584,20 +592,64 @@ exportDataBtn.addEventListener("click", () => {
 function showTodayView() {
   viewToday.hidden = false;
   viewHistory.hidden = true;
+  viewSwap.hidden = true;
   tabTodayBtn.classList.add("active");
   tabHistoryBtn.classList.remove("active");
+  tabSwapBtn.classList.remove("active");
 }
 
 function showHistoryView() {
   viewToday.hidden = true;
   viewHistory.hidden = false;
+  viewSwap.hidden = true;
   tabTodayBtn.classList.remove("active");
   tabHistoryBtn.classList.add("active");
+  tabSwapBtn.classList.remove("active");
   renderHistory();
+}
+
+function showSwapView() {
+  viewToday.hidden = true;
+  viewHistory.hidden = true;
+  viewSwap.hidden = false;
+  tabTodayBtn.classList.remove("active");
+  tabHistoryBtn.classList.remove("active");
+  tabSwapBtn.classList.add("active");
 }
 
 tabTodayBtn.addEventListener("click", showTodayView);
 tabHistoryBtn.addEventListener("click", showHistoryView);
+tabSwapBtn.addEventListener("click", showSwapView);
+
+swapForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const food = swapInput.value.trim();
+  if (!food) return;
+
+  swapButton.disabled = true;
+  swapResultEl.hidden = true;
+  swapStatusEl.classList.remove("error");
+  swapStatusEl.textContent = "Thinking...";
+
+  try {
+    const res = await fetch(`/api/swap-suggestion?food=${encodeURIComponent(food)}`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.error || "Couldn't generate a suggestion.");
+    }
+
+    swapStatusEl.textContent = "";
+    swapResultEl.textContent = data.answer;
+    swapResultEl.hidden = false;
+  } catch (err) {
+    swapStatusEl.textContent = err.message || "Something went wrong.";
+    swapStatusEl.classList.add("error");
+  } finally {
+    swapButton.disabled = false;
+  }
+});
 
 goalEditBtn.addEventListener("click", () => {
   const goal = loadGoal();
